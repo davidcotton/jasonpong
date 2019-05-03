@@ -11,7 +11,7 @@ class Action(Enum):
     ACTION_RIGHT = 2
 
 
-BOARD_WIDTH = 16
+BOARD_WIDTH = 8
 BOARD_HEIGHT = 16
 PADDLE_WIDTH = 2
 PADDLE_HEIGHT = 1
@@ -43,7 +43,7 @@ class Pong(Env):
         if self.player_turn == 1:
             self._update()
 
-        state = self._get_state()
+        state = self._get_state()[:]
         if self.game_over:
             reward = 1 if self.winner == self.player_turn else -1
         else:
@@ -68,13 +68,17 @@ class Pong(Env):
         return self._get_state()
 
     def _update(self):
-        # self.time += 1
         self.ball_position += self.ball_velocity
 
-        # bounce off bat
-        if (self.ball_position[1] == 1 and abs(self.ball_position[0] - self.paddle_position[0]) <= 1) or (
-                self.ball_position[1] == 10 and abs(self.ball_position[0] - self.paddle_position[1]) <= 1):  # player 1 bat y axis
-            self.ball_velocity[1] *= -1
+        # bounce off paddle
+        if self.ball_position[1] == PADDLE_HEIGHT:
+            delta = abs(self.ball_position[0] - self.paddle_position[0])
+            if delta <= (PADDLE_WIDTH // 2):
+                self.ball_velocity[1] *= -1
+        elif self.ball_position[1] == (BOARD_HEIGHT - PADDLE_HEIGHT):
+            delta = abs(self.ball_position[0] - self.paddle_position[1])
+            if delta <= (PADDLE_WIDTH // 2):
+                self.ball_velocity[1] *= -1
 
         # reflect off side walls
         if self.ball_position[0] >= BOARD_WIDTH or self.ball_position[0] <= 0:
@@ -90,7 +94,7 @@ class Pong(Env):
 
     def render(self, mode='human'):
         print('Time:{} Player:{} Bat:{} Ball_P:({},{}) Ball_V:({},{})'.format(self.time, self.player_turn,
-                                                                               *self._get_state()))
+                                                                              *self._get_state()))
 
     def _get_state(self):
         return np.array([self.paddle_position[self.player_turn]] + list(self.ball_position) + list(self.ball_velocity))
