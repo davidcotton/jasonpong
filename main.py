@@ -10,7 +10,7 @@ def play_game():
         # state = env.get_state()
         # env.step(1)
         for player in players:
-            obs, reward, is_game_over, _ = env.step(1)
+            obs, reward, is_game_over, _ = env.step(2)
             env.render()
 
 
