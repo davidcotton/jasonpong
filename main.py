@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from jasonpong.envs.pong import Pong, BOARD_WIDTH, BOARD_HEIGHT, Action
+from jasonpong.envs.pong import Pong
 
 
 class Agent(ABC):
@@ -31,12 +31,16 @@ class SimpleAgent(Agent):
 
 
 class QTableAgent(Agent):
-    def __init__(self, player) -> None:
+    def __init__(self, player, env) -> None:
         super().__init__(player)
         self.gamma = 0.95
         self.learning_rate = 0.8
-        self.num_actions = len(Action)
-        self.q = np.zeros([BOARD_WIDTH, BOARD_WIDTH, BOARD_HEIGHT, self.num_actions])
+        self.num_actions = env.action_space.n
+        obs_space = env.observation_space.spaces
+        my_paddle_space = obs_space[player].n
+        board_width = obs_space[2].n
+        board_height = obs_space[3].n
+        self.q = np.zeros([my_paddle_space, board_width, board_height, self.num_actions])
         self.epsilon = 0.1
         self.last_state = None
         self.last_action = None
@@ -49,7 +53,7 @@ class QTableAgent(Agent):
         if np.random.uniform() < self.epsilon:
             action = np.random.randint(0, self.num_actions - 1)
         else:
-            # action = np.argmax(q)
+            # randomly break ties
             best_actions = np.argwhere(q == np.amax(q)).flatten()
             action = np.random.choice(best_actions)
         self.last_state = paddle_position, ball_x, ball_y
@@ -72,9 +76,13 @@ class QTableAgent(Agent):
 def play_game():
     env = Pong()
     agent_cls = QTableAgent
-    agents = [agent_cls(i) for i in range(2)]
+    agents = [agent_cls(i, env) for i in range(2)]
+    results = {
+        'winners': [],
+        'steps': []
+    }
 
-    for episode in range(10000):
+    for episode in range(int(1e2)):
         # print('episode:', episode)
         is_game_over = False
         obs = env.reset()
@@ -93,10 +101,16 @@ def play_game():
                 agent.backwards(reward, is_game_over, obs)
                 # env.render()
                 if reward == 1:
-                    print('episode:', episode, 'winner:', player, 'steps', step)
+                    results['winners'].append(player)
+                    results['steps'].append(step)
+                    # print('episode:', episode, 'winner:', player, 'steps', step)
             step += 1
         # print()
-    foo = 1
+    steps = np.array(results['steps'])
+    winners = np.array(results['winners'])
+    print('steps mean:', np.mean(steps))
+    print('steps max:', np.max(steps))
+    print('winners:', np.bincount(winners))
 
 
 if __name__ == '__main__':

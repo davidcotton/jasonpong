@@ -1,11 +1,11 @@
 from enum import Enum
 
 from gym import Env
-from gym import spaces
+from gym.spaces import Box, Discrete, Tuple
 import numpy as np
 
 
-class Action(Enum):
+class Actions(Enum):
     ACTION_NOOP = 0
     ACTION_LEFT = 1
     ACTION_RIGHT = 2
@@ -21,8 +21,15 @@ class Pong(Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
-        self.action_space = spaces.Discrete(1)
-        self.observation_space = spaces.Discrete(5)
+        self.action_space = Discrete(len(Actions))
+        self.observation_space = Tuple(spaces=(
+            Discrete(BOARD_WIDTH),  # player0 paddle x pos
+            Discrete(BOARD_WIDTH),  # player1 paddle x pos
+            Discrete(BOARD_WIDTH),  # ball x pos
+            Discrete(BOARD_HEIGHT),  # ball y pos
+            Box(low=0, high=1, shape=(1,)),  # ball x velocity
+            Box(low=0, high=1, shape=(1,)),  # ball y velocity
+        ))
         self.time = 0
         self.game_over = False
         self.winner = None
@@ -45,9 +52,9 @@ class Pong(Env):
             return
 
         for player, action in enumerate(actions):
-            if action == Action.ACTION_LEFT.value:
+            if action == Actions.ACTION_LEFT.value:
                 self.paddle_positions[player] = max(self.paddle_positions[player] - 1, 0)
-            elif action == Action.ACTION_RIGHT.value:
+            elif action == Actions.ACTION_RIGHT.value:
                 self.paddle_positions[player] = min(self.paddle_positions[player] + 1, BOARD_WIDTH)
 
         self._update()
