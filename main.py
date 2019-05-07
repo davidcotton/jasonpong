@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 
+import gym
 import numpy as np
 
-from jasonpong.envs.pong import Pong
+from jason_pong.envs.jason_pong_env import JasonPongEnv
 
 
 class Agent(ABC):
@@ -74,7 +75,7 @@ class QTableAgent(Agent):
 
 
 def play_game():
-    env = Pong()
+    env = gym.make('JasonPong-v0')
     agent_cls = QTableAgent
     agents = [agent_cls(i, env) for i in range(2)]
     results = {

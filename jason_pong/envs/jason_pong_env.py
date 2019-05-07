@@ -1,6 +1,6 @@
 from enum import Enum
 
-from gym import Env
+import gym
 from gym.spaces import Box, Discrete, Tuple
 import numpy as np
 
@@ -17,7 +17,7 @@ PADDLE_WIDTH = 2
 PADDLE_HEIGHT = 1
 
 
-class Pong(Env):
+class JasonPongEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):

@@ -1,7 +1,7 @@
 import os
 from setuptools import setup
 
-NAME = 'jasonpong'
+NAME = 'jason_pong'
 
 
 def read_file(path):
