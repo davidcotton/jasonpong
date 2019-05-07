@@ -7,5 +7,5 @@ logger = logging.getLogger(__name__)
 
 register(
     id='JasonPong-v0',
-    entry_point='jason_pong.envs:JasonPongEnv',
+    entry_point='gym_jasonpong.envs:JasonPongEnv',
 )

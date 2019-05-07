@@ -1,7 +1,7 @@
 import os
 from setuptools import setup
 
-NAME = 'jason_pong'
+NAME = 'gym_jasonpong'
 
 
 def read_file(path):
@@ -14,9 +14,10 @@ def get_version(path):
     return version_line.split('__version__ = ')[-1][1:][:-2]
 
 
-setup(name=NAME,
-      version=get_version(os.path.join(NAME, '__init__.py')),
-      description='Jason Pong',
-      long_description=open('README.md').read(),
-      install_requires=['gym'],
-      )
+setup(
+    name=NAME,
+    version=get_version(os.path.join(NAME, '__init__.py')),
+    description='Jason Pong',
+    long_description=open('README.md').read(),
+    install_requires=['gym'],
+)
