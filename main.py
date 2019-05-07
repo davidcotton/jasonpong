@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import gym
 import numpy as np
 
-import gym_jasonpong
+import jasonpong
 
 
 class Agent(ABC):

@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='gym_jasonpong',
+    name='jasonpong',
     version='0.1.0',
     description='Jason Pong',
     long_description=open('README.md').read(),
