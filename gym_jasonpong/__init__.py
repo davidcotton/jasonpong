@@ -1,5 +1,3 @@
-__version__ = '0.1.0'
-
 import logging
 from gym.envs.registration import register
 
