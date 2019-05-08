@@ -68,7 +68,7 @@ class JasonPongEnv(gym.Env):
 
         self.time += 1
 
-        return state, reward, self.game_over, info
+        return state, np.array(reward, dtype=np.float16), self.game_over, info
 
     def _update(self):
         self.ball_position += self.ball_velocity
