@@ -1,74 +1,78 @@
 from enum import Enum
+from typing import Tuple
 
 import gym
-from gym.spaces import Box, Discrete, Tuple
+from gym import spaces
 import numpy as np
 
 
 class Actions(Enum):
-    ACTION_NOOP = 0
-    ACTION_LEFT = 1
+    ACTION_LEFT = 0
+    ACTION_NOOP = 1
     ACTION_RIGHT = 2
 
 
-BOARD_WIDTH = 8
-BOARD_HEIGHT = 16
-PADDLE_WIDTH = 2
+BOARD_WIDTH = 9
+BOARD_HEIGHT = 17
+PADDLE_WIDTH = 1
 PADDLE_HEIGHT = 1
+RANDOM_START_X = True
 
 
 class JasonPongEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
-        self.action_space = Discrete(len(Actions))
-        self.observation_space = Tuple(spaces=(
-            Discrete(BOARD_WIDTH),  # player0 paddle x pos
-            Discrete(BOARD_WIDTH),  # player1 paddle x pos
-            Discrete(BOARD_WIDTH),  # ball x pos
-            Discrete(BOARD_HEIGHT),  # ball y pos
-            Box(low=0, high=1, shape=(1,)),  # ball x velocity
-            Box(low=0, high=1, shape=(1,)),  # ball y velocity
+        self.action_space = spaces.Discrete(len(Actions))
+        self.observation_space = spaces.Tuple(spaces=(
+            spaces.Discrete(BOARD_WIDTH),  # player0 paddle x pos
+            spaces.Discrete(BOARD_WIDTH),  # player1 paddle x pos
+            spaces.Discrete(BOARD_WIDTH),  # ball x pos
+            spaces.Discrete(BOARD_HEIGHT),  # ball y pos
+            spaces.Box(low=0, high=1, shape=(1,)),  # ball x velocity
+            spaces.Box(low=0, high=1, shape=(1,)),  # ball y velocity
         ))
         self.time = 0
         self.game_over = False
+        self.player = 0
         self.winner = None
         self.paddle_positions = None
         self.ball_position = None
         self.ball_velocity = None
+        self.bonus_reward = [0.0, 0.0]
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         self.time = 0
         self.game_over = False
+        self.player = 0
         self.winner = None
-        self.paddle_positions = [BOARD_WIDTH // 2, BOARD_WIDTH // 2]
-        self.ball_position = np.array([BOARD_WIDTH // 2, BOARD_HEIGHT // 2])
-        self.ball_velocity = np.array([1, 1])
+        self.paddle_positions = np.array([BOARD_WIDTH // 2, BOARD_WIDTH // 2], dtype=np.int8)
+        ball_start_x = np.random.choice(BOARD_WIDTH - 2) + 1 if RANDOM_START_X else BOARD_WIDTH // 2
+        self.ball_position = np.array([ball_start_x, BOARD_HEIGHT // 2], dtype=np.int8)
+        self.ball_velocity = np.array(np.random.choice([-1, 1], size=(2,)), dtype=np.int8)
 
         return self._get_state()
 
-    def step(self, actions):
-        if self.game_over:
-            return
-
-        for player, action in enumerate(actions):
+    def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
+        if not self.game_over:
             if action == Actions.ACTION_LEFT.value:
-                self.paddle_positions[player] = max(self.paddle_positions[player] - 1, 0)
+                self.paddle_positions[self.player] = max(self.paddle_positions[self.player] - 1, 0)
             elif action == Actions.ACTION_RIGHT.value:
-                self.paddle_positions[player] = min(self.paddle_positions[player] + 1, BOARD_WIDTH)
+                self.paddle_positions[self.player] = min(self.paddle_positions[self.player] + 1, (BOARD_WIDTH - 1))
 
-        self._update()
+            if self.player == 1:
+                self._update()
 
         state = self._get_state()[:]
-        if self.game_over:
-            reward = (1, -1) if self.winner == 0 else (-1, 1)
-        else:
-            reward = (0, 0)
+        # state = self._get_state()
+        reward = self._calculate_reward()
         info = {}
 
-        self.time += 1
+        if self.player == 1:
+            self.time += 1
+        self.player = (self.player + 1) % 2
 
-        return state, np.array(reward, dtype=np.float16), self.game_over, info
+        return state, reward, self.game_over, info
 
     def _update(self):
         self.ball_position += self.ball_velocity
@@ -78,25 +82,38 @@ class JasonPongEnv(gym.Env):
             delta = abs(self.ball_position[0] - self.paddle_positions[0])
             if delta <= (PADDLE_WIDTH // 2):
                 self.ball_velocity[1] *= -1
+                self.bonus_reward[0] = 0.1
         elif self.ball_position[1] == (BOARD_HEIGHT - PADDLE_HEIGHT):
             delta = abs(self.ball_position[0] - self.paddle_positions[1])
             if delta <= (PADDLE_WIDTH // 2):
                 self.ball_velocity[1] *= -1
+                self.bonus_reward[1] = 0.1
 
         # reflect off side walls
-        if self.ball_position[0] >= BOARD_WIDTH or self.ball_position[0] <= 0:
+        if self.ball_position[0] >= (BOARD_WIDTH - 1) or self.ball_position[0] <= 0:
             self.ball_velocity[0] *= -1
 
         # lose and win conditions
-        if self.ball_position[1] >= BOARD_HEIGHT:
+        if self.ball_position[1] >= (BOARD_HEIGHT - 1):
             self.game_over = True
             self.winner = 0
-        if self.ball_position[1] <= 0:
+        elif self.ball_position[1] <= 0:
             self.game_over = True
             self.winner = 1
 
-    def render(self, mode='human'):
-        print('Time:{} Paddles:({}, {}) Ball_P:({},{}) Ball_V:({},{})'.format(self.time, *self._get_state()))
+    def _calculate_reward(self) -> float:
+        if not self.game_over:
+            # reward = 0.0
+            reward = self.bonus_reward[self.player]
+            self.bonus_reward[self.player] = 0.0
+        elif self.player == self.winner:
+            reward = 1.0
+        else:
+            reward = -1.0
+        return reward
 
-    def _get_state(self):
-        return np.concatenate((np.array(self.paddle_positions), self.ball_position, self.ball_velocity), axis=0)
+    def render(self, mode='human'):
+        print('Time:{} Paddles:({}, {}) Ball_Pos:({},{}) Ball_Vel:({},{})'.format(self.time, *self._get_state()))
+
+    def _get_state(self) -> np.ndarray:
+        return np.concatenate((self.paddle_positions, self.ball_position, self.ball_velocity), axis=0)
