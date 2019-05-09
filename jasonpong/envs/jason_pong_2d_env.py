@@ -1,9 +1,14 @@
 import numpy as np
+from gym import spaces
 
 from jasonpong.envs.jason_pong_env import JasonPongEnv, BOARD_WIDTH, BOARD_HEIGHT, PADDLE_HEIGHT, PADDLE_WIDTH
 
 
 class JasonPong2dEnv(JasonPongEnv):
+
+    def __init__(self):
+        super().__init__()
+        self.observation_space = spaces.Box(low=0, high=3, shape=(BOARD_HEIGHT, BOARD_WIDTH, 1), dtype=np.uint8)
 
     def render(self, mode='human'):
         print(self._get_state())
