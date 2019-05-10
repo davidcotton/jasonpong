@@ -80,12 +80,12 @@ class JasonPongEnv(gym.Env):
         # bounce off paddle
         if self.ball_position[1] == PADDLE_HEIGHT:
             delta = abs(self.ball_position[0] - self.paddle_positions[0])
-            if delta <= (PADDLE_WIDTH // 2):
+            if delta <= (PADDLE_WIDTH ):
                 self.ball_velocity[1] *= -1
                 self.bonus_reward[0] = 0.1
         elif self.ball_position[1] == (BOARD_HEIGHT - PADDLE_HEIGHT):
             delta = abs(self.ball_position[0] - self.paddle_positions[1])
-            if delta <= (PADDLE_WIDTH // 2):
+            if delta <= (PADDLE_WIDTH ):
                 self.ball_velocity[1] *= -1
                 self.bonus_reward[1] = 0.1
 
