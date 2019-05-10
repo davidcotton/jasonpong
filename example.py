@@ -55,7 +55,13 @@ class QTableAgent(Agent):
     def forward(self, state) -> int:
         paddle_pos = int(state[0])
         ball_x = int(state[2])
-        new_state = (paddle_pos, ball_x)
+        # Internally the q learner agent uses a dictionary which requires a format
+        # that can be converted to a tuple as a key
+        # Thus we convert the numpy array to a list -> tuple
+        new_state = state.tolist() 
+
+        # For faster convergence you can have the new state just refined to the bat and ball position
+        # new_state = (paddle_pos, ball_x)
 
         action = self.ql.select(new_state, 3, self.learning_mode, [0,1,2])
 
