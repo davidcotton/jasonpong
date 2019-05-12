@@ -5,7 +5,7 @@ import gym
 import numpy as np
 
 import jasonpong
-
+from q_learner import QLearner
 
 Transition = namedtuple('Transition', ['state', 'action', 'reward', 'game_over'])
 
@@ -26,7 +26,7 @@ class Agent(ABC):
 
 class RandomAgent(Agent):
     def forward(self, state) -> int:
-        action = np.random.choice([1, 2])
+        action = np.random.choice([0, 1, 2])
         return action
 
 
@@ -82,17 +82,65 @@ class QTableAgent(Agent):
         return self.board_width * y + x
 
 
+class QLearnerAgent(Agent):
+    def __init__(self, player, env) -> None:
+        super().__init__(player, env)
+        self.learning_mode = True
+        self.learning_rate = 0.05
+        exploration_rate = 0.05
+        # Use Jason's refined backprop q learning code
+        self.ql = QLearner(exploration_rate)
+        obs_space = env.observation_space.spaces  # To make the agent more modular I'm keeping track of
+        self.board_width = obs_space[2].n  # all the relevant states,actions for training
+        self.board_height = obs_space[3].n
+        self.reset()
+
+    # Change between learning and testing modes
+    def set_learn_mode(self, learning_mode):
+        self.learning_mode = learning_mode
+
+    def reset(self):
+        # Start each game with no information
+        self.state_seq = []
+        self.action_seq = []
+        self.all_actions = []
+
+    def forward(self, state) -> int:
+        # Internally the q learner agent uses a dictionary which requires a format
+        # that can be converted to a tuple as a key
+        # Thus we convert the numpy array to a list -> tuple
+        new_state = state.tolist()
+
+        # For faster convergence you can have the new state just refined to the bat and ball position
+        action = self.ql.select(new_state, 3, self.learning_mode, [0, 1, 2])
+
+        # Push state and action data for training
+        if self.learning_mode:
+            self.state_seq.append(new_state)
+            self.action_seq.append(action)
+            self.all_actions.append([0, 1, 2])
+
+        return action
+
+    def backwards(self, transition: Transition):
+        # If its game over push the state action data into the q learner bot
+        if self.state_seq and transition.reward:
+            self.ql.update(self.state_seq, self.action_seq, self.all_actions, transition.reward)
+            self.reset()
+
+
 RENDER_STEP = False
-RENDER_EPISODE = False
+RENDER_EPISODE = True
 
 
 def play_game():
     env = gym.make('JasonPong-v0')
     # env = gym.make('JasonPong2d-v0')
-    agents = [QTableAgent(i, env) for i in range(2)]
+    # agents = [QTableAgent(i, env) for i in range(2)]
     # agents = [RandomAgent(i, env) for i in range(2)]
     # agents = [QTableAgent(0, env), RandomAgent(1, env)]
     # agents = [RandomAgent(0, env), QTableAgent(1, env)]
+    agents = [QLearnerAgent(i, env) for i in range(2)]
     obs_buffer = deque(maxlen=2)
     results = {
         'winners': [],
