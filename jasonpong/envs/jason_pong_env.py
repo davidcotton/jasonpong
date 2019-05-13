@@ -45,7 +45,8 @@ class JasonPongEnv(gym.Env):
         self.paddle_positions = np.array([BOARD_WIDTH // 2, BOARD_WIDTH // 2], dtype=np.float16)
         ball_start_x = np.random.choice(BOARD_WIDTH - 2) + 1 if RANDOM_START_X else BOARD_WIDTH // 2
         self.ball_position = np.array([ball_start_x, BOARD_HEIGHT // 2], dtype=np.float16)
-        self.ball_velocity = np.array(np.random.choice([-0.5, 0.5], size=(2,)), dtype=np.float16)
+        self.ball_velocity = np.array(np.random.choice([-1, 1], size=(2,)), dtype=np.float16)
+        # self.ball_velocity = np.array(np.random.choice([-0.5, 0.5], size=(2,)), dtype=np.float16)
 
         return self._get_state()
 
@@ -78,7 +79,7 @@ class JasonPongEnv(gym.Env):
             if delta <= (PADDLE_WIDTH // 2):
                 self.ball_velocity[1] *= -1
                 self.bonus_reward[0] = self.bonus_reward_value
-        elif self.ball_position[1] == (BOARD_HEIGHT - PADDLE_HEIGHT):
+        elif self.ball_position[1] == (BOARD_HEIGHT - PADDLE_HEIGHT - 1):
             delta = abs(self.ball_position[0] - self.paddle_positions[1])
             if delta <= (PADDLE_WIDTH // 2):
                 self.ball_velocity[1] *= -1
@@ -108,7 +109,11 @@ class JasonPongEnv(gym.Env):
         return reward
 
     def render(self, mode='human'):
-        print('Time:{} Paddles:({}, {}) Ball_Pos:({},{}) Ball_Vel:({},{})'.format(self.time, *self._get_state()))
+        time = self.time
+        paddle_x, paddle_y = self.paddle_positions
+        ball_x, ball_y = self.ball_position
+        vel_x, vel_y = self.ball_velocity
+        print(f'Time:{time} Paddles:({paddle_x:.0f},{paddle_y:.0f}) Ball_Pos:({ball_x:.1f},{ball_y:.1f}) Ball_Vel:({vel_x:.1f},{vel_y:.1f})')
 
     def _get_state(self) -> np.ndarray:
         return np.concatenate((self.paddle_positions, self.ball_position, self.ball_velocity), axis=0)
