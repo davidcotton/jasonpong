@@ -24,8 +24,8 @@ class JasonPongEnv(gym.Env):
 
     def __init__(self):
         self.action_space = spaces.Discrete(len(Actions))
-        low = np.array([0, 0, 0, 0, 0, 0])
-        high = np.array([BOARD_WIDTH, BOARD_WIDTH, BOARD_WIDTH, BOARD_HEIGHT, 1, 1])
+        low = np.array([0, 0, 0, 0, -1, -1], dtype=np.int8)
+        high = np.array([BOARD_WIDTH, BOARD_WIDTH, BOARD_WIDTH, BOARD_HEIGHT, 1, 1], dtype=np.int8)
         self.observation_space = spaces.Box(low, high)
         self.time = 0
         self.game_over = False
@@ -59,7 +59,6 @@ class JasonPongEnv(gym.Env):
                 self._update()
 
         state = self._get_state()[:]
-        # state = self._get_state()
         reward = self._calculate_reward()
         info = {}
 
@@ -111,4 +110,20 @@ class JasonPongEnv(gym.Env):
         print('Time:{} Paddles:({}, {}) Ball_Pos:({},{}) Ball_Vel:({},{})'.format(self.time, *self._get_state()))
 
     def _get_state(self) -> np.ndarray:
-        return np.concatenate((self.paddle_positions, self.ball_position, self.ball_velocity), axis=0)
+        # state = np.concatenate((self.paddle_positions, self.ball_position, self.ball_velocity), axis=0)
+
+        # ----------
+
+        if self.player == 0:
+            paddle_positions = self.paddle_positions
+            ball_position = self.ball_position
+            ball_velocity = self.ball_velocity
+        else:
+            paddle_positions = self.paddle_positions[::-1]
+            ball_x = BOARD_WIDTH - self.ball_position[0]
+            ball_y = BOARD_HEIGHT - self.ball_position[1]
+            ball_position = np.array([ball_x, ball_y])
+            ball_velocity = self.ball_velocity * -1
+        state = np.concatenate((paddle_positions, ball_position, ball_velocity), axis=0)
+
+        return state
