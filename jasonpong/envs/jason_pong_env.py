@@ -49,6 +49,10 @@ class JasonPongEnv(gym.Env):
         return self._get_state()
 
     def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
+        # reverse the action for player 1
+        if self.player == 1:
+            action = 2 - action
+
         if not self.game_over:
             if action == Actions.ACTION_LEFT.value:
                 self.paddle_positions[self.player] = max(self.paddle_positions[self.player] - 1, 0)
