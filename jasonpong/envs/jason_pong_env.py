@@ -24,14 +24,9 @@ class JasonPongEnv(gym.Env):
 
     def __init__(self):
         self.action_space = spaces.Discrete(len(Actions))
-        self.observation_space = spaces.Tuple(spaces=(
-            spaces.Discrete(BOARD_WIDTH),  # player0 paddle x pos
-            spaces.Discrete(BOARD_WIDTH),  # player1 paddle x pos
-            spaces.Discrete(BOARD_WIDTH),  # ball x pos
-            spaces.Discrete(BOARD_HEIGHT),  # ball y pos
-            spaces.Box(low=0, high=1, shape=(1,)),  # ball x velocity
-            spaces.Box(low=0, high=1, shape=(1,)),  # ball y velocity
-        ))
+        low = np.array([0, 0, 0, 0, 0, 0])
+        high = np.array([BOARD_WIDTH, BOARD_WIDTH, BOARD_WIDTH, BOARD_HEIGHT, 1, 1])
+        self.observation_space = spaces.Box(low, high)
         self.time = 0
         self.game_over = False
         self.player = 0
