@@ -37,9 +37,9 @@ class QTableAgent(Agent):
         self.learning_rate = 0.05
         self.epsilon = 0.
         self.num_actions = env.action_space.n
-        obs_space = env.observation_space.spaces
-        self.board_width = obs_space[2].n
-        self.board_height = obs_space[3].n
+        obs_space = env.observation_space
+        self.board_width = int(obs_space.high[2])
+        self.board_height = int(obs_space.high[3])
         board_size = self.board_width * self.board_height
         self.q = np.zeros([self.board_width, board_size, self.num_actions], dtype=np.float16)
 
@@ -129,18 +129,18 @@ class QLearnerAgent(Agent):
             self.reset()
 
 
-RENDER_STEP = False
+RENDER_STEP = True
 RENDER_EPISODE = True
 
 
 def play_game():
     env = gym.make('JasonPong-v0')
     # env = gym.make('JasonPong2d-v0')
-    # agents = [QTableAgent(i, env) for i in range(2)]
+    agents = [QTableAgent(i, env) for i in range(2)]
     # agents = [RandomAgent(i, env) for i in range(2)]
     # agents = [QTableAgent(0, env), RandomAgent(1, env)]
     # agents = [RandomAgent(0, env), QTableAgent(1, env)]
-    agents = [QLearnerAgent(i, env) for i in range(2)]
+    # agents = [QLearnerAgent(i, env) for i in range(2)]
     obs_buffer = deque(maxlen=2)
     results = {
         'winners': [],
