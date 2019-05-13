@@ -35,6 +35,7 @@ class JasonPongEnv(gym.Env):
         self.ball_position = None
         self.ball_velocity = None
         self.bonus_reward = [0.0, 0.0]
+        self.bonus_reward_value = 0.1
 
     def reset(self) -> np.ndarray:
         self.time = 0
@@ -76,12 +77,12 @@ class JasonPongEnv(gym.Env):
             delta = abs(self.ball_position[0] - self.paddle_positions[0])
             if delta <= (PADDLE_WIDTH // 2):
                 self.ball_velocity[1] *= -1
-                self.bonus_reward[0] = 0.1
+                self.bonus_reward[0] = self.bonus_reward_value
         elif self.ball_position[1] == (BOARD_HEIGHT - PADDLE_HEIGHT):
             delta = abs(self.ball_position[0] - self.paddle_positions[1])
             if delta <= (PADDLE_WIDTH // 2):
                 self.ball_velocity[1] *= -1
-                self.bonus_reward[1] = 0.1
+                self.bonus_reward[1] = self.bonus_reward_value
 
         # reflect off side walls
         if self.ball_position[0] >= (BOARD_WIDTH - 1) or self.ball_position[0] <= 0:
