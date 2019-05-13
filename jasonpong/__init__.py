@@ -11,3 +11,7 @@ register(
     id='JasonPong2d-v0',
     entry_point='jasonpong.envs:JasonPong2dEnv',
 )
+register(
+    id='JasonPongReversed-v0',
+    entry_point='jasonpong.envs:JasonPongReversedEnv',
+)

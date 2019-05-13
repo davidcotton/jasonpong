@@ -49,10 +49,6 @@ class JasonPongEnv(gym.Env):
         return self._get_state()
 
     def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
-        # reverse the action for player 1
-        if self.player == 1:
-            action = 2 - action
-
         if not self.game_over:
             if action == Actions.ACTION_LEFT.value:
                 self.paddle_positions[self.player] = max(self.paddle_positions[self.player] - 1, 0)
@@ -114,20 +110,4 @@ class JasonPongEnv(gym.Env):
         print('Time:{} Paddles:({}, {}) Ball_Pos:({},{}) Ball_Vel:({},{})'.format(self.time, *self._get_state()))
 
     def _get_state(self) -> np.ndarray:
-        # state = np.concatenate((self.paddle_positions, self.ball_position, self.ball_velocity), axis=0)
-
-        # ----------
-
-        if self.player == 0:
-            paddle_positions = self.paddle_positions
-            ball_position = self.ball_position
-            ball_velocity = self.ball_velocity
-        else:
-            paddle_positions = self.paddle_positions[::-1]
-            ball_x = BOARD_WIDTH - self.ball_position[0]
-            ball_y = BOARD_HEIGHT - self.ball_position[1]
-            ball_position = np.array([ball_x, ball_y])
-            ball_velocity = self.ball_velocity * -1
-        state = np.concatenate((paddle_positions, ball_position, ball_velocity), axis=0)
-
-        return state
+        return np.concatenate((self.paddle_positions, self.ball_position, self.ball_velocity), axis=0)
