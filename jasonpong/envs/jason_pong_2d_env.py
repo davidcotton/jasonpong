@@ -9,6 +9,7 @@ class JasonPong2dEnv(JasonPongEnv):
     def __init__(self):
         super().__init__()
         self.observation_space = spaces.Box(low=0, high=3, shape=(BOARD_HEIGHT, BOARD_WIDTH, 1), dtype=np.uint8)
+        self.obs_type = 'image'
 
     def render(self, mode='human'):
         print(self._get_state())
