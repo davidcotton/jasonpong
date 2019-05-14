@@ -3,10 +3,11 @@ import csv
 
 
 class QLearner:
-    def __init__(self, exploration_rate):
+    def __init__(self, exploration_rate, num_actions):
         self.epsilon = exploration_rate
-        self.alpha = 0.9
-        self.gamma = 0.8
+        self.num_actions = num_actions
+        self.alpha = 0.5
+        self.gamma = 0.99
         self.q_table = {}
         self.action_sequence = {}
         self.state_action = {}
@@ -19,7 +20,6 @@ class QLearner:
         state_action_key = self.build_state_action_key(state, action_id)
         if state_action_key not in self.q_table:
             return 0, 0
-
         return self.q_table[state_action_key]
 
     def get_best_q_val(self, state, num_actions):
@@ -36,29 +36,17 @@ class QLearner:
 
         return best_q_t1_val
 
-    def dump_qvals(self):
-        with open('qvals.csv', 'w') as f:
-            fcsv = csv.writer(f, lineterminator='\n')
-            fcsv.writerow(['State', 'Values', 'Attempts'])
-
-            for state_action_key in self.q_table:
-                fcsv.writerow([state_action_key, self.q_table[state_action_key][0], self.q_table[state_action_key][1]])
-
-    def select(self, state, num_actions, learn, actions):
+    def select(self, state, learn):
         best_action_id = None
         best_q_t1_val = None
-        # hashable_state = tuple([tuple(x) for x in state])
         hashable_state = self._make_hashable(state)
-        self.action_sequence[hashable_state] = num_actions
-        self.state_action[hashable_state] = tuple(actions)
+        self.action_sequence[hashable_state] = self.num_actions
+        self.state_action[hashable_state] = tuple([0, 1, 2])
 
-        if uniform(0, 1) < self.epsilon and learn:
-            # Choose random action
-            best_action_id = randint(0, num_actions - 1)
-            q_val, attempts = self.get_q_val(state, best_action_id)
-            best_q_t1_val = 0
+        if uniform(0, 1) < self.epsilon and learn:  # choose random action
+            best_action_id = randint(0, self.num_actions - 1)
         else:
-            for action_id in range(num_actions):
+            for action_id in range(self.num_actions):
                 next_q_val, attempts = self.get_q_val(state, action_id)
                 if learn:
                     next_q_val += uniform(1e-6, 1e-8)
@@ -67,10 +55,8 @@ class QLearner:
                     best_action_id = action_id
         return best_action_id
 
-    def update(self, state_list, action_list, final_state, reward):
-
+    def update(self, state_list, action_list, reward):
         prev_reward = reward
-
         for i in range(len(state_list) - 1, -1, -1):
             prev_state = state_list[i]
             prev_action = action_list[i]
@@ -98,3 +84,11 @@ class QLearner:
 
     def _make_hashable(self, nested_list):
         return tuple([tuple(x) for x in nested_list])
+
+    def dump_qvals(self):
+        with open('qvals.csv', 'w') as f:
+            fcsv = csv.writer(f, lineterminator='\n')
+            fcsv.writerow(['State', 'Values', 'Attempts'])
+
+            for state_action_key in self.q_table:
+                fcsv.writerow([state_action_key, self.q_table[state_action_key][0], self.q_table[state_action_key][1]])
