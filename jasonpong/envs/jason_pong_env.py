@@ -26,7 +26,7 @@ class JasonPongEnv(gym.Env):
         self.action_space = spaces.Discrete(len(Actions))
         low = np.array([0, 0, 0, 0, -1, -1], dtype=np.float16)
         high = np.array([BOARD_WIDTH, BOARD_WIDTH, BOARD_WIDTH, BOARD_HEIGHT, 1, 1], dtype=np.float16)
-        self.observation_space = spaces.Box(low, high)
+        self.observation_space = spaces.Box(low, high, dtype=np.float16)
         self.time = 0
         self.game_over = False
         self.player = 0
