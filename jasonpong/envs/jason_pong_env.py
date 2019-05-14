@@ -17,6 +17,7 @@ BOARD_HEIGHT = 17
 PADDLE_WIDTH = 1
 PADDLE_HEIGHT = 1
 RANDOM_START_X = True
+MAX_STEPS_PER_GAME = int(1e4)
 
 
 class JasonPongEnv(gym.Env):
@@ -96,6 +97,9 @@ class JasonPongEnv(gym.Env):
         elif self.ball_position[1] <= 0:
             self.game_over = True
             self.winner = 1
+        elif self.time > MAX_STEPS_PER_GAME:  # solved
+            self.game_over = True
+            self.winner = 2  # both players won
 
     def _calculate_reward(self) -> float:
         if not self.game_over:
