@@ -39,7 +39,7 @@ class JasonPongEnv(gym.Env):
         self.bonus_reward = [0.0, 0.0]
         self.bonus_reward_value = 0.1
 
-    def reset(self) -> np.ndarray:
+    def reset(self) -> Tuple[np.ndarray, np.ndarray]:
         self.time = 0
         self.game_over = False
         self.player = 0
@@ -50,7 +50,12 @@ class JasonPongEnv(gym.Env):
         self.ball_velocity = np.array(np.random.choice([-1, 1], size=(2,)), dtype=np.float16)
         # self.ball_velocity = np.array(np.random.choice([-0.5, 0.5], size=(2,)), dtype=np.float16)
 
-        return self._get_state()
+        player0_obs = self._get_state()
+        self.player = 1
+        player1_obs = self._get_state()
+        self.player = 0
+
+        return player0_obs, player1_obs
 
     def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
         if not self.game_over:

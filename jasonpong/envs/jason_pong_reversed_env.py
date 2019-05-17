@@ -11,13 +11,13 @@ class JasonPongReversedEnv(JasonPongEnv):
         super().__init__()
         self.bonus_reward_value = 1.0
 
-    def reset(self) -> Tuple[np.ndarray, np.ndarray]:
-        player0_state = super().reset()
-        self.player = 1
-        player1_state = self._get_state()
-        self.player = 0
-
-        return player0_state, player1_state
+    # def reset(self) -> Tuple[np.ndarray, np.ndarray]:
+    #     player0_state = super().reset()
+    #     self.player = 1
+    #     player1_state = self._get_state()
+    #     self.player = 0
+    #
+    #     return player0_state, player1_state
 
     def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
         # reverse the action for player 1
