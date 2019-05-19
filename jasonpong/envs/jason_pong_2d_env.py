@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import numpy as np
 from gym import spaces
 
@@ -12,13 +10,6 @@ class JasonPong2dEnv(JasonPongEnv):
         super().__init__()
         self.observation_space = spaces.Box(low=0, high=3, shape=(BOARD_HEIGHT, BOARD_WIDTH, 1), dtype=np.uint8)
         # self.obs_type = 'image'
-
-    def reset(self) -> Tuple[np.ndarray, np.ndarray]:
-        player0_obs = super().reset()
-        self.player = 1
-        player1_obs = super().reset()
-        self.player = 0
-        return player0_obs, player1_obs
 
     def render(self, mode='human'):
         print(self._get_state())
