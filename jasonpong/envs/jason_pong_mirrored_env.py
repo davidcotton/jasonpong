@@ -5,7 +5,7 @@ import numpy as np
 from jasonpong.envs.jason_pong_env import JasonPongEnv, BOARD_WIDTH, BOARD_HEIGHT, PADDLE_HEIGHT, PADDLE_WIDTH
 
 
-class JasonPongReversedEnv(JasonPongEnv):
+class JasonPongMirroredEnv(JasonPongEnv):
 
     def __init__(self):
         super().__init__()
