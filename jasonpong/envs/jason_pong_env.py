@@ -36,6 +36,7 @@ class JasonPongEnv(gym.Env):
         self.paddle_positions = None
         self.ball_position = None
         self.ball_velocity = None
+        self.win_reward_value = 1.0
         self.bonus_reward = [0.0, 0.0]
         self.bonus_reward_value = 0.1
 
@@ -109,13 +110,12 @@ class JasonPongEnv(gym.Env):
 
     def _calculate_reward(self) -> float:
         if not self.game_over:
-            # reward = 0.0
             reward = self.bonus_reward[self.player]
             self.bonus_reward[self.player] = 0.0
         elif self.player == self.winner:
-            reward = 1.0
+            reward = self.win_reward_value
         else:
-            reward = -1.0
+            reward = self.win_reward_value * -1.0
         return reward
 
     def render(self, mode='human'):
