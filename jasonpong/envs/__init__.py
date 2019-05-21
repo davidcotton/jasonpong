@@ -1,3 +1,4 @@
 from jasonpong.envs.jason_pong_env import JasonPongEnv
+from jasonpong.envs.jason_pong_mirrored2_env import JasonPongMirrored2Env
 from jasonpong.envs.jason_pong_2d_env import JasonPong2dEnv
 from jasonpong.envs.jason_pong_mirrored_env import JasonPongMirroredEnv

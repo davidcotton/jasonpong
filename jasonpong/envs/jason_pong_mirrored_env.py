@@ -9,8 +9,10 @@ class JasonPongMirroredEnv(JasonPongEnv):
 
     def __init__(self):
         super().__init__()
-        self.win_reward_value = 0.0
-        self.bonus_reward_value = 1.0
+        # self.win_reward_value = 0.0
+        # self.hit_reward_value = 0.1 / 715  # normalise by the maximum possible number of hits
+        # self.hit_reward_value = 0.1
+        self.hit_reward_value = 0.0
 
     def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
         # reverse the action for player 1
@@ -18,6 +20,14 @@ class JasonPongMirroredEnv(JasonPongEnv):
             action = 2 - action
 
         return super().step(action)
+
+    # def _calculate_reward(self) -> float:
+    #     if not self.game_over:
+    #         reward = 0.0
+    #     else:
+    #         reward = self.bonus_reward[self.player]
+    #         self.bonus_reward[self.player] = 0.0
+    #     return reward
 
     def _get_state(self) -> np.ndarray:
         # reverse the observation for player 1
