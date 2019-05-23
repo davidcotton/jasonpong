@@ -180,8 +180,9 @@ RENDER_EPISODE = True
 
 
 def play_game():
-    env = gym.make('JasonPong-v0')
-    # env = gym.make('JasonPong2d-v0')
+    # env = gym.make('JasonPong-v1')
+    env = gym.make('VisualPong-v1')
+    # env = gym.make('JasonPong2d-v1')
     # agents = [QTableAgent(i, env) for i in range(2)]
     # agents = [RandomAgent(i, env) for i in range(2)]
     # agents = [QTableAgent(0, env), RandomAgent(1, env)]

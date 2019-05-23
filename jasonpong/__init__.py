@@ -19,3 +19,7 @@ register(
     id='JasonPongMirrored-v2',
     entry_point='jasonpong.envs:JasonPongMirrored2Env',
 )
+register(
+    id='VisualPong-v1',
+    entry_point='jasonpong.envs:VisualPongEnv',
+)

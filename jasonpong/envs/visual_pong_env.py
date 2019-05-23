@@ -31,14 +31,13 @@ class PongObject:
         self.pos = pos
         self.vel = vel
 
-    @staticmethod
-    def accelerate(paddle, acceleration):
-        v = paddle.vel
+    def accelerate(self, acceleration):
+        v = self.vel
         sign_a = np.sign(acceleration)
         if np.sign(v) == sign_a:
-            paddle.vel = 0.8 * (v + acceleration)
+            self.vel = 0.8 * (v + acceleration)
         else:
-            paddle.vel = v + acceleration
+            self.vel = v + acceleration
 
 
 class VisualPongEnv(Env):
@@ -50,23 +49,26 @@ class VisualPongEnv(Env):
 
     # define event handlers
     def __init__(self):
+        self.action_space = spaces.Box(low=-2, high=2, shape=(2,))
+        self.observation_space = spaces.Box(low=0, high=255, shape=(WIDTH, HEIGHT, 3))
         self.viewer = None
-        self.paddle1, self.paddle2, self.reward = PongObject([HALF_PAD_WIDTH - 1, HEIGHT / 2], 0), PongObject(
-            [WIDTH + 1 - HALF_PAD_WIDTH, HEIGHT / 2], 0), 0
         self.canvas = pygame.Surface((WIDTH, HEIGHT))
         self.screen = sarray.array3d(self.canvas)
         self.rng = np.random.RandomState()
-        self.action_space = spaces.Box(low=-2, high=2, shape=(2,))
-        self.observation_space = spaces.Box(low=0, high=255, shape=(WIDTH, HEIGHT, 3))
+        self.paddle1 = PongObject([HALF_PAD_WIDTH - 1, HEIGHT / 2], 0)
+        self.paddle2 = PongObject([WIDTH + 1 - HALF_PAD_WIDTH, HEIGHT / 2], 0)
+        self.reward = [0.0, 0.0]
+        self.is_finished = False
+        self.ball = None
 
     def seed(self, seed=None):
         self.rng.seed(seed)
 
     def reset(self):
         self.is_finished = False
-        self.paddle1, self.paddle2, self.reward = PongObject([HALF_PAD_WIDTH - 1, HEIGHT / 2], 0), PongObject(
-            [WIDTH + 1 - HALF_PAD_WIDTH, HEIGHT / 2], 0), 0
-
+        self.paddle1 = PongObject([HALF_PAD_WIDTH - 1, HEIGHT / 2], 0)
+        self.paddle2 = PongObject([WIDTH + 1 - HALF_PAD_WIDTH, HEIGHT / 2], 0)
+        self.reward = [0.0, 0.0]
         horz = self.rng.uniform(2, 4)
         vert = self.rng.uniform(-3, 3)
         if self.rng.randint(2):
@@ -76,9 +78,9 @@ class VisualPongEnv(Env):
         return self.step([0, 0])[0]
 
     # draw function of canvas
-    def step(self, action):
-        self.paddle1.accelerate(action[0])
-        self.paddle2.accelerate(action[1])
+    def step(self, actions):
+        self.paddle1.accelerate(actions[0])
+        self.paddle2.accelerate(actions[1])
 
         self.canvas.fill(BLACK)
         pygame.draw.line(self.canvas, WHITE, [WIDTH / 2, 0], [WIDTH / 2, HEIGHT], 1)
@@ -111,7 +113,7 @@ class VisualPongEnv(Env):
         if self.ball.pos[1] in (HEIGHT + 1 - BALL_RADIUS, BALL_RADIUS):
             self.ball.vel[1] *= -1
 
-        self.reward = np.absolute(self.ball.vel[1])
+        # self.reward = np.absolute(self.ball.vel[1])
         # ball collision check on gutters or paddles
         if int(self.ball.pos[0]) <= BALL_RADIUS + HALF_PAD_WIDTH:
             if int(self.ball.pos[1]) in range(int(self.paddle1.pos[1] - HALF_PAD_HEIGHT),
@@ -121,6 +123,7 @@ class VisualPongEnv(Env):
                 self.ball.vel[1] *= 1.1
             elif int(self.ball.pos[0]) <= 0:
                 self.is_finished = True
+                self.reward = [0.0, 1.0]
 
         if int(self.ball.pos[0]) >= WIDTH - BALL_RADIUS - HALF_PAD_WIDTH:
             if int(self.ball.pos[1]) in range(int(self.paddle2.pos[1] - HALF_PAD_HEIGHT),
@@ -130,7 +133,9 @@ class VisualPongEnv(Env):
                 self.ball.vel[1] *= 1.1
             elif int(self.ball.pos[0]) >= WIDTH:
                 self.is_finished = True
+                self.reward = [1.0, 0.0]
         self.screen = sarray.array3d(self.canvas)
+
         return self.screen, self.reward, self.is_finished, None
 
     def render(self, mode='human', close=False):
