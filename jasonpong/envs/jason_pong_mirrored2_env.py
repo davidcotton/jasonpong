@@ -92,7 +92,7 @@ class JasonPongMirrored2Env(gym.Env):
         elif self.ball_position[1] <= 0:
             self.game_over = True
             self.winner = 1
-        elif self.time > MAX_STEPS_PER_GAME:  # solved
+        elif self.time >= (MAX_STEPS_PER_GAME - 1):  # solved
             self.game_over = True
             self.winner = 2  # both players won
 

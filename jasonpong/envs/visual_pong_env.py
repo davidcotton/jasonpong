@@ -24,6 +24,7 @@ PAD_WIDTH = 8
 PAD_HEIGHT = 200
 HALF_PAD_WIDTH = PAD_WIDTH / 2
 HALF_PAD_HEIGHT = PAD_HEIGHT / 2
+MAX_STEPS_PER_GAME = int(1e4)
 
 
 class PongObject:
@@ -49,8 +50,9 @@ class VisualPongEnv(Env):
 
     # define event handlers
     def __init__(self):
-        self.action_space = spaces.Box(low=-2, high=2, shape=(2,))
-        self.observation_space = spaces.Box(low=0, high=255, shape=(WIDTH, HEIGHT, 3))
+        self.action_space = spaces.Box(low=-2, high=2, shape=(2,), dtype=np.float16)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(WIDTH, HEIGHT, 3), dtype=np.uint8)
+        self.obs_type = 'image'
         self.viewer = None
         self.canvas = pygame.Surface((WIDTH, HEIGHT))
         self.screen = sarray.array3d(self.canvas)
@@ -60,6 +62,8 @@ class VisualPongEnv(Env):
         self.reward = [0.0, 0.0]
         self.is_finished = False
         self.ball = None
+        self.time = 0
+        self.winner = None
 
     def seed(self, seed=None):
         self.rng.seed(seed)
@@ -75,6 +79,8 @@ class VisualPongEnv(Env):
             self.ball = PongObject([WIDTH / 2, HEIGHT / 2], [-horz, vert])
         else:
             self.ball = PongObject([WIDTH / 2, HEIGHT / 2], [horz, vert])
+        self.time = 0
+        self.winner = None
         return self.step([0, 0])[0]
 
     # draw function of canvas
@@ -123,7 +129,8 @@ class VisualPongEnv(Env):
                 self.ball.vel[1] *= 1.1
             elif int(self.ball.pos[0]) <= 0:
                 self.is_finished = True
-                self.reward = [0.0, 1.0]
+                self.winner = 1
+                self.reward = [-1.0, 1.0]
 
         if int(self.ball.pos[0]) >= WIDTH - BALL_RADIUS - HALF_PAD_WIDTH:
             if int(self.ball.pos[1]) in range(int(self.paddle2.pos[1] - HALF_PAD_HEIGHT),
@@ -133,8 +140,17 @@ class VisualPongEnv(Env):
                 self.ball.vel[1] *= 1.1
             elif int(self.ball.pos[0]) >= WIDTH:
                 self.is_finished = True
-                self.reward = [1.0, 0.0]
+                self.winner = 0
+                self.reward = [1.0, -1.0]
+
+        if self.time >= (MAX_STEPS_PER_GAME - 1):
+            self.is_finished = True
+            self.winner = 2
+            self.reward = [1.0, 1.0]
+
         self.screen = sarray.array3d(self.canvas)
+
+        self.time += 1
 
         return self.screen, self.reward, self.is_finished, None
 
