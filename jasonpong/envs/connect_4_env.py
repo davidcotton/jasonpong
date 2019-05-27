@@ -1,0 +1,124 @@
+from enum import Enum
+from typing import Tuple
+
+import gym
+from gym import spaces
+import numpy as np
+
+
+BOARD_WIDTH = 7
+BOARD_HEIGHT = 6
+
+
+class Connect4Env(gym.Env):
+    metadata = {'render.modes': ['human']}
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.action_space = spaces.Discrete(BOARD_WIDTH)
+        self.observation_space = spaces.Box(low=0, high=2, shape=(BOARD_HEIGHT, BOARD_WIDTH), dtype=np.uint8)
+        self.obs_type = 'image'
+        self.board = np.zeros([BOARD_HEIGHT, BOARD_WIDTH], dtype=np.uint8)
+        self.time = 0
+        self.game_over = False
+        self.player = 1
+        self.winner = None
+
+    def reset(self) -> np.ndarray:
+        self.board = np.zeros([BOARD_HEIGHT, BOARD_WIDTH], dtype=np.uint8)
+        self.time = 0
+        self.game_over = False
+        self.player = 1
+        self.winner = None
+
+        return self._get_state()
+
+    def step(self, action):
+        if not self.game_over:
+            self.drop(self.player, action)
+            # if self.board[action] == 0:
+            #     self.board[action] = self.player
+
+            winner = self._has_winner()
+            if winner:
+                self.game_over = True
+                self.winner = winner
+
+        self.player = ((self.player + 1) % 2) + 1
+        reward = 0
+        info = {}
+        return self._get_state(), reward, self.game_over, info
+
+    def _has_winner(self) -> int:
+        pass
+
+    def drop(self, player, column):
+        '''
+        Drops a number (same as player) in the column specified
+        '''
+        column_vec = self.board[:, column]
+        non_zero = np.where(column_vec != 0)[0]
+
+        if non_zero.size == 0:
+            # sets the stone to the last element
+            i = self.board.shape[0] - 1
+            self.board[i, column] = player
+        else:
+            # sets the stone on the last 0
+            i = non_zero[0] - 1
+            self.board[i, column] = player
+        # checking if winning for every drop!
+        if self._winning_check(i, column):
+            print(f'Player {player} wins!')
+        else:
+            return self.board
+
+    def _winning_rule(self, arr) -> bool:
+        win1rule = np.array([1, 1, 1, 1])
+        win2rule = np.array([2, 2, 2, 2])
+        # subarrays of len = 4
+        sub_arrays = [arr[i:i + 4] for i in range(len(arr) - 3)]
+
+        player1wins = any([np.array_equal(win1rule, sub) for sub in sub_arrays])
+        player2wins = any([np.array_equal(win2rule, sub) for sub in sub_arrays])
+
+        if player1wins or player2wins:
+            return True
+        else:
+            return False
+
+    def _winning_check(self, i, j) -> bool:
+        '''
+        Checks if there is four equal numbers in every
+        row, column and diagonal of the matrix
+        '''
+        all_arr = []
+        all_arr.extend(self._get_axes(self.board, i, j))
+        all_arr.extend(self._get_diagonals(self.board, i, j))
+
+        for arr in all_arr:
+            winner = self._winning_rule(arr)
+            if winner:
+                return True
+            else:
+                pass
+
+    def _get_diagonals(self, _table, i, j) -> list:
+        diags = []
+        diags.append(np.diagonal(_table, offset=(j - i)))
+        diags.append(np.diagonal(np.rot90(_table), offset=-_table.shape[1] + (j + i) + 1))
+        return diags
+
+    def _get_axes(self, _table, i, j) -> list:
+        axes = []
+        axes.append(_table[i, :])
+        axes.append(_table[:, j])
+        return axes
+
+    def _get_state(self) -> np.ndarray:
+        return self.board[:]
+
+    def render(self, mode='human') -> None:
+        print(self._get_state())
+
+
