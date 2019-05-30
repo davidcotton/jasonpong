@@ -50,6 +50,7 @@ class Connect4Env(gym.Env):
         else:
             reward = 0.0
         info = {}
+
         return self._get_state(), reward, self.game_over, info
 
     def drop(self, player, column):
