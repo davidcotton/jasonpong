@@ -35,27 +35,27 @@ class Connect4Env(gym.Env):
 
     def step(self, action):
         if not self.game_over:
-            self.drop(self.player, action)
-            # if self.board[action] == 0:
-            #     self.board[action] = self.player
-
-            winner = self._has_winner()
+            i = self.drop(self.player, action)
+            winner = self._winning_check(i, action)
             if winner:
                 self.game_over = True
-                self.winner = winner
+                self.winner = self.player
 
-        self.player = ((self.player + 1) % 2) + 1
-        reward = 0
+        self.player = 1 if self.player == 2 else 2
+        self.time += 1
+
+        # reward = 0 if not self.game_over else
+        if self.game_over:
+            reward = 1.0 if self.player == self.winner else -1.0
+        else:
+            reward = 0.0
         info = {}
         return self._get_state(), reward, self.game_over, info
 
-    def _has_winner(self) -> int:
-        pass
-
     def drop(self, player, column):
-        '''
+        """
         Drops a number (same as player) in the column specified
-        '''
+        """
         column_vec = self.board[:, column]
         non_zero = np.where(column_vec != 0)[0]
 
@@ -67,11 +67,23 @@ class Connect4Env(gym.Env):
             # sets the stone on the last 0
             i = non_zero[0] - 1
             self.board[i, column] = player
-        # checking if winning for every drop!
-        if self._winning_check(i, column):
-            print(f'Player {player} wins!')
-        else:
-            return self.board
+        return i
+
+    def _winning_check(self, i, j) -> bool:
+        """
+        Checks if there is four equal numbers in every
+        row, column and diagonal of the matrix
+        """
+        all_arr = []
+        all_arr.extend(self._get_axes(self.board, i, j))
+        all_arr.extend(self._get_diagonals(self.board, i, j))
+
+        for arr in all_arr:
+            winner = self._winning_rule(arr)
+            if winner:
+                return True
+            else:
+                pass
 
     def _winning_rule(self, arr) -> bool:
         win1rule = np.array([1, 1, 1, 1])
@@ -86,22 +98,6 @@ class Connect4Env(gym.Env):
             return True
         else:
             return False
-
-    def _winning_check(self, i, j) -> bool:
-        '''
-        Checks if there is four equal numbers in every
-        row, column and diagonal of the matrix
-        '''
-        all_arr = []
-        all_arr.extend(self._get_axes(self.board, i, j))
-        all_arr.extend(self._get_diagonals(self.board, i, j))
-
-        for arr in all_arr:
-            winner = self._winning_rule(arr)
-            if winner:
-                return True
-            else:
-                pass
 
     def _get_diagonals(self, _table, i, j) -> list:
         diags = []
@@ -119,6 +115,8 @@ class Connect4Env(gym.Env):
         return self.board[:]
 
     def render(self, mode='human') -> None:
-        print(self._get_state())
+        print(self._get_state(), '\n')
+        if self.winner:
+            print('winner:', self.winner)
 
 
