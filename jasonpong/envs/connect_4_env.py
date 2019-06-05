@@ -1,6 +1,3 @@
-from enum import Enum
-from typing import Tuple
-
 import gym
 from gym import spaces
 import numpy as np
