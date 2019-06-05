@@ -36,20 +36,22 @@ class Connect4Env(gym.Env):
     def step(self, action):
         if not self.game_over:
             i = self.drop(self.player, action)
+            reward = -1.0 if i < 0 else 0.0  # negative reward if invalid action (column full)
             winner = self._winning_check(i, action)
             if winner:
                 self.game_over = True
                 self.winner = self.player
 
-        self.player = 1 if self.player == 2 else 2
-        self.time += 1
+        if np.all(self.board):  # check if board full
+            self.game_over = True
+            self.winner = 0  # there was no winner
 
-        # reward = 0 if not self.game_over else
         if self.game_over:
             reward = 1.0 if self.player == self.winner else -1.0
-        else:
-            reward = 0.0
         info = {}
+
+        self.player = 1 if self.player == 2 else 2
+        self.time += 1
 
         return self._get_state(), reward, self.game_over, info
 
@@ -67,7 +69,8 @@ class Connect4Env(gym.Env):
         else:
             # sets the stone on the last 0
             i = non_zero[0] - 1
-            self.board[i, column] = player
+            if i >= 0:
+                self.board[i, column] = player
         return i
 
     def _winning_check(self, i, j) -> bool:
