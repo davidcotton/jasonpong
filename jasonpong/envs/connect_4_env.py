@@ -1,3 +1,5 @@
+from typing import Set
+
 import gym
 from gym import spaces
 import numpy as np
@@ -32,7 +34,7 @@ class Connect4Env(gym.Env):
 
     def step(self, action):
         if not self.game_over:
-            i = self.drop(self.player, action)
+            i = self._drop(self.player, action)
             reward = -1.0 if i < 0 else 0.0  # negative reward if invalid action (column full)
             winner = self._winning_check(i, action)
             if winner:
@@ -52,7 +54,7 @@ class Connect4Env(gym.Env):
 
         return self._get_state(), reward, self.game_over, info
 
-    def drop(self, player, column):
+    def _drop(self, player, column):
         """
         Drops a number (same as player) in the column specified
         """
@@ -69,6 +71,15 @@ class Connect4Env(gym.Env):
             if i >= 0:
                 self.board[i, column] = player
         return i
+
+    def valid_moves(self) -> Set[int]:
+        valid_moves = set()
+        for column in range(self.board.shape[1]):
+            column_vec = self.board[:, column]
+            nonzero = np.count_nonzero(column_vec)
+            if nonzero < self.board.shape[0]:
+                valid_moves.add(column)
+        return valid_moves
 
     def _winning_check(self, i, j) -> bool:
         """
