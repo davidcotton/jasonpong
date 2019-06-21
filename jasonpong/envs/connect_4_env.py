@@ -111,17 +111,14 @@ class Connect4Env(gym.Env):
         else:
             return False
 
-    def _get_diagonals(self, _table, i, j) -> list:
+    def _get_diagonals(self, board, i, j) -> list:
         diags = []
-        diags.append(np.diagonal(_table, offset=(j - i)))
-        diags.append(np.diagonal(np.rot90(_table), offset=-_table.shape[1] + (j + i) + 1))
+        diags.append(np.diagonal(board, offset=(j - i)))
+        diags.append(np.diagonal(np.rot90(board), offset=-board.shape[1] + (j + i) + 1))
         return diags
 
-    def _get_axes(self, _table, i, j) -> list:
-        axes = []
-        axes.append(_table[i, :])
-        axes.append(_table[:, j])
-        return axes
+    def _get_axes(self, board, i, j) -> list:
+        return [board[i, :], board[:, j]]
 
     def _get_state(self) -> np.ndarray:
         return self.board[:]
