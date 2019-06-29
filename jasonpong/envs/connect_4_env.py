@@ -121,7 +121,7 @@ class Connect4Env(gym.Env):
         return [board[i, :], board[:, j]]
 
     def _get_state(self) -> np.ndarray:
-        return self.board[:]
+        return self.board.copy()
 
     def render(self, mode='human') -> None:
         print(self._get_state(), '\n')
