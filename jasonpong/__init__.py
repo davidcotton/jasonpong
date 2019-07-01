@@ -23,7 +23,3 @@ register(
     id='VisualPong-v1',
     entry_point='jasonpong.envs:VisualPongEnv',
 )
-register(
-    id='Connect4Env-v1',
-    entry_point='jasonpong.envs:Connect4Env',
-)
