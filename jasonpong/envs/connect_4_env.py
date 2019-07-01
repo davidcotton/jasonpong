@@ -36,17 +36,15 @@ class Connect4Env(gym.Env):
         if not self.game_over:
             i = self._drop(self.player, action)
             reward = -1.0 if i < 0 else 0.0  # negative reward if invalid action (column full)
-            winner = self._winning_check(i, action)
-            if winner:
-                self.game_over = True
-                self.winner = self.player
+            self._winning_check(i, action)
+
+        if self.game_over:
+            reward = 1.0 if self.player == self.winner else -1.0
 
         if np.all(self.board):  # check if board full
             self.game_over = True
             self.winner = 0  # there was no winner
 
-        if self.game_over:
-            reward = 1.0 if self.player == self.winner else -1.0
         info = {}
 
         self.player = 1 if self.player == 2 else 2
@@ -81,7 +79,7 @@ class Connect4Env(gym.Env):
                 valid_moves.add(column)
         return valid_moves
 
-    def _winning_check(self, i, j) -> bool:
+    def _winning_check(self, i, j) -> None:
         """
         Checks if there is four equal numbers in every
         row, column and diagonal of the matrix
@@ -93,9 +91,8 @@ class Connect4Env(gym.Env):
         for arr in all_arr:
             winner = self._winning_rule(arr)
             if winner:
-                return True
-            else:
-                pass
+                self.game_over = True
+                self.winner = self.player
 
     def _winning_rule(self, arr) -> bool:
         win1rule = np.array([1, 1, 1, 1])
